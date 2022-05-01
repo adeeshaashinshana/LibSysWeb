@@ -3,7 +3,10 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 import { BsRecordFill } from "react-icons/bs";
 import Card from "react-bootstrap/Card";
+import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
+import caseConverter from "../Helper/letterCaseConverter";
+import { userStateEnum } from "../Shared/enums";
 
 const UserInfoCard = ({
   userID,
@@ -30,12 +33,12 @@ const UserInfoCard = ({
         </div>
         <div
           className={classNames("d-flex align-items-center", {
-            "text-success": userState === "ACTIVE",
-            "text-danger": userState === "SUSPEND",
+            "text-success": userState === userStateEnum.ACTIVE,
+            "text-danger": userState === userStateEnum.SUSPEND,
           })}
         >
           <BsRecordFill className="me-1" />
-          <span> {userState} </span>
+          <span>{caseConverter(userState)}</span>
         </div>
       </Card.Header>
       <ListGroup variant="flush">
@@ -45,7 +48,7 @@ const UserInfoCard = ({
               User Name : <span> {userName} </span>
             </div>
             <div className="col-4">
-              User Type : <span> {userType} </span>
+              User Type : <span> {caseConverter(userType)} </span>
             </div>
           </div>
         </ListGroup.Item>
@@ -55,7 +58,16 @@ const UserInfoCard = ({
               User Email : <span> {userEmail} </span>
             </div>
             <div className="col-4">
-              Total Fines : Rs.<span> {totalFine} </span>
+              <div className="d-flex align-items-center">
+                Total Fines :{" "}
+                <span className="ms-1">
+                  {totalFine > 0 ? (
+                    <Badge bg="danger">Rs. {totalFine} /=</Badge>
+                  ) : (
+                    "No any fines"
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </ListGroup.Item>
