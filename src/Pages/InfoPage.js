@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import UserInfoCard from "../Components/UserInfoCard";
+import BorrowTable from "../Components/BorrowedTable";
 import { GET_USER_BY_ID } from "../API/Queries";
 
 const InfoPage = () => {
@@ -63,6 +64,7 @@ const InfoPage = () => {
               Return Books
             </Button>
           </Row>
+          <BorrowTable userID={userID} />
         </>
       ) : (
         <Alert variant="danger" className="mt-5">

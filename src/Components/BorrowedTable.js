@@ -1,7 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { useQuery } from "@apollo/client";
 import Table from "react-bootstrap/Table";
+import caseConverter from "../Helper/letterCaseConverter";
+import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
 
-const BorrowTable = () => {
+const BorrowTable = ({ userID }) => {
+  BorrowTable.propTypes = {
+    userID: PropTypes.string.isRequired,
+  };
+
+  const [borrowedBooks, setBorrowedBooks] = useState([]);
+
+  useQuery(GET_BORROWED_BOOKS_BY_ID, {
+    fetchPolicy: "network-only",
+    variables: {
+      userId: userID,
+    },
+    onCompleted({ getBorrowedBookByUserID }) {
+      setBorrowedBooks(getBorrowedBookByUserID);
+    },
+  });
+
   return (
     <Table striped bordered hover variant="dark" className="my-5">
       <thead>
@@ -18,28 +38,21 @@ const BorrowTable = () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>B001</td>
-          <td>REF001</td>
-          <td>Reference</td>
-          <td>2022-05-02</td>
-          <td>2022-05-02</td>
-          <td>Pending</td>
-          <td>-</td>
-          <td>0</td>
-          <td>No Fine</td>
-        </tr>
-        <tr>
-          <td>B001</td>
-          <td>LEN001</td>
-          <td>Lending</td>
-          <td>2022-05-02</td>
-          <td>2022-05-16</td>
-          <td>Pending</td>
-          <td>-</td>
-          <td>0</td>
-          <td>No Fine</td>
-        </tr>
+        {borrowedBooks.map((record) =>
+          record.borrowedBooks.map((book, index) => (
+            <tr key={index}>
+              <td> {record.borrowID} </td>
+              <td> {book.bookID} </td>
+              <td> {caseConverter(book.bookType)} </td>
+              <td> {record.borrowDate.split("T")[0]} </td>
+              <td> {book.dueDate.split("T")[0]} </td>
+              <td> {caseConverter(book.returnState)} </td>
+              <td> {book.returnedDate !== null ? book.returnedDate : "-"} </td>
+              <td> {book.fines > 0 ? book.fines : "-"} </td>
+              <td> {caseConverter(book.fineState)} </td>
+            </tr>
+          ))
+        )}
       </tbody>
     </Table>
   );
