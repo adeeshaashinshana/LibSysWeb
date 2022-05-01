@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { useQuery } from "@apollo/client";
 import Table from "react-bootstrap/Table";
+import Badge from "react-bootstrap/Badge";
 import caseConverter from "../Helper/letterCaseConverter";
+import {
+  returnStatusEnum,
+  fineStatusEnum,
+  bookTypeEnum,
+} from "../Shared/enums";
 import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
 
 const BorrowTable = ({ userID }) => {
@@ -21,6 +27,42 @@ const BorrowTable = ({ userID }) => {
       setBorrowedBooks(getBorrowedBookByUserID);
     },
   });
+
+  const textStyler = (status) => {
+    let textColor;
+
+    switch (status) {
+      case returnStatusEnum.PENDING:
+        textColor = "text-warning";
+        break;
+      case returnStatusEnum.RETURNED:
+        textColor = "text-success";
+        break;
+      case returnStatusEnum.OVERDUE:
+        textColor = "text-danger";
+        break;
+      case bookTypeEnum.REFERENCE:
+        textColor = "text-info";
+        break;
+      case bookTypeEnum.LENDING:
+        textColor = "text-primary";
+        break;
+      case fineStatusEnum.NO_FINE:
+        textColor = "text-light";
+        break;
+      case fineStatusEnum.PAID:
+        textColor = "text-success";
+        break;
+      case fineStatusEnum.UNPAID:
+        textColor = "text-danger";
+        break;
+      default:
+        textColor = "text-light";
+        break;
+    }
+
+    return <span className={textColor}> {caseConverter(status)} </span>;
+  };
 
   return (
     <Table striped bordered hover variant="dark" className="my-5">
@@ -43,13 +85,19 @@ const BorrowTable = ({ userID }) => {
             <tr key={index}>
               <td> {record.borrowID} </td>
               <td> {book.bookID} </td>
-              <td> {caseConverter(book.bookType)} </td>
+              <td> {textStyler(book.bookType)} </td>
               <td> {record.borrowDate.split("T")[0]} </td>
               <td> {book.dueDate.split("T")[0]} </td>
-              <td> {caseConverter(book.returnState)} </td>
+              <td> {textStyler(book.returnState)} </td>
               <td> {book.returnedDate !== null ? book.returnedDate : "-"} </td>
-              <td> {book.fines > 0 ? book.fines : "-"} </td>
-              <td> {caseConverter(book.fineState)} </td>
+              <td>
+                {book.fines > 0 ? (
+                  <Badge bg="danger">Rs. {book.fines} /=</Badge>
+                ) : (
+                  "-"
+                )}
+              </td>
+              <td> {textStyler(book.fineState)} </td>
             </tr>
           ))
         )}

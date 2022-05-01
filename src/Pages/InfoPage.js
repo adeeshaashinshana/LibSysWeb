@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
@@ -7,9 +7,12 @@ import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import UserInfoCard from "../Components/UserInfoCard";
 import BorrowTable from "../Components/BorrowedTable";
+import { userStateEnum } from "../Shared/enums";
 import { GET_USER_BY_ID } from "../API/Queries";
 
 const InfoPage = () => {
+  const navigate = useNavigate();
+
   const [searchParams] = useSearchParams("");
   const userID = searchParams.get("userID");
 
@@ -41,6 +44,12 @@ const InfoPage = () => {
     getUserInfo();
   }, [getUserInfo]);
 
+  const HomePageButton = (
+    <Button as={Col} variant="primary" onClick={() => navigate("/")}>
+      Home Page
+    </Button>
+  );
+
   return (
     <div className="container h-100">
       {userInfo.userName !== "" ? (
@@ -54,10 +63,16 @@ const InfoPage = () => {
             totalFine={userInfo.totalFines}
           />
           <Row className="mx-0">
-            <Button as={Col} variant="danger">
+            {HomePageButton}
+            <Button as={Col} variant="danger" className="ms-5">
               Pay Fine
             </Button>
-            <Button as={Col} variant="warning" className="mx-2">
+            <Button
+              as={Col}
+              variant="warning"
+              className="mx-2"
+              disabled={userInfo.userState === userStateEnum.SUSPEND}
+            >
               Borrow Books
             </Button>
             <Button as={Col} variant="success">
@@ -67,9 +82,12 @@ const InfoPage = () => {
           <BorrowTable userID={userID} />
         </>
       ) : (
-        <Alert variant="danger" className="mt-5">
-          No any user with this UserID
-        </Alert>
+        <>
+          <Alert variant="danger" className="mt-5">
+            No any user with this UserID
+          </Alert>
+          {HomePageButton}
+        </>
       )}
     </div>
   );
