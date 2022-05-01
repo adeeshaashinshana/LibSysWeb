@@ -89,10 +89,22 @@ const BorrowTable = ({ userID }) => {
               <td> {record.borrowDate.split("T")[0]} </td>
               <td> {book.dueDate.split("T")[0]} </td>
               <td> {textStyler(book.returnState)} </td>
-              <td> {book.returnedDate !== null ? book.returnedDate : "-"} </td>
+              <td>
+                {book.returnedDate !== null
+                  ? book.returnedDate.split("T")[0]
+                  : "-"}
+              </td>
               <td>
                 {book.fines > 0 ? (
-                  <Badge bg="danger">Rs. {book.fines} /=</Badge>
+                  <Badge
+                    bg={
+                      book.fineState === fineStatusEnum.UNPAID
+                        ? "danger"
+                        : "secondary"
+                    }
+                  >
+                    Rs. {book.fines} /=
+                  </Badge>
                 ) : (
                   "-"
                 )}
