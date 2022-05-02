@@ -104,6 +104,7 @@ const InfoPage = () => {
             <BorrowBooksCard
               show={modalShow}
               onHide={setModalShow}
+              userType={userInfo.userType}
               remainingRefBookCount={
                 userInfo.userType === userTypeEnum.STUDENT
                   ? studentAllowedBookCount.REF_BOOK_COUNT - usedRefBookCount
