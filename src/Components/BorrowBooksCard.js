@@ -17,6 +17,7 @@ const BorrowBooksCard = ({
   userType,
   remainingRefBookCount,
   remainingLenBookCount,
+  refetchData,
 }) => {
   BorrowBooksCard.propTypes = {
     show: PropTypes.bool.isRequired,
@@ -25,6 +26,10 @@ const BorrowBooksCard = ({
     userType: PropTypes.string.isRequired,
     remainingRefBookCount: PropTypes.number.isRequired,
     remainingLenBookCount: PropTypes.number.isRequired,
+    refetchData: PropTypes.func,
+  };
+  BorrowBooksCard.defaultProps = {
+    refetchData: () => null,
   };
 
   const [remainingRefBooks, setRemainingRefBooks] = useState(
@@ -128,7 +133,10 @@ const BorrowBooksCard = ({
       },
     },
     async onCompleted({ createBorrow }) {
-      console.log("createBorrow >>>", createBorrow);
+      if (createBorrow) {
+        refetchData(true);
+        handleModalClose();
+      }
     },
   });
 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useLazyQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
@@ -34,8 +34,9 @@ const InfoPage = () => {
   const [modalState, setModalState] = useState("");
   const [usedRefBookCount, setUsedRefBookCount] = useState(0);
   const [usedLenBookCount, setUsedLenBookCount] = useState(0);
+  const [refetchState, setRefetchState] = useState(false);
 
-  const [getUserInfo] = useLazyQuery(GET_USER_BY_ID, {
+  const { refetch } = useQuery(GET_USER_BY_ID, {
     fetchPolicy: "network-only",
     variables: {
       userId: userID,
@@ -50,8 +51,8 @@ const InfoPage = () => {
   });
 
   useEffect(() => {
-    getUserInfo();
-  }, [getUserInfo]);
+    refetch();
+  }, [refetchState]);
 
   const HomePageButton = (
     <Button as={Col} variant="primary" onClick={() => navigate("/")}>
@@ -98,6 +99,8 @@ const InfoPage = () => {
             userType={userInfo.userType}
             setUsedRefBooks={setUsedRefBookCount}
             setUsedLenBooks={setUsedLenBookCount}
+            refetchData={refetchState}
+            refetchDataState={setRefetchState}
           />
 
           {modalShow && modalState === modalStateEnum.BORROW_BOOKS && (
@@ -118,6 +121,7 @@ const InfoPage = () => {
                   : staffMemberAllowedBookCount.LEN_BOOK_COUNT -
                     usedLenBookCount
               }
+              refetchData={setRefetchState}
             />
           )}
         </>
