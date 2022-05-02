@@ -7,7 +7,12 @@ import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import UserInfoCard from "../Components/UserInfoCard";
 import BorrowTable from "../Components/BorrowedTable";
-import { userStateEnum } from "../Shared/enums";
+import BorrowBooksCard from "../Components/BorrowBooksCard";
+import { userStateEnum, modalStateEnum, userTypeEnum } from "../Shared/enums";
+import {
+  studentAllowedBookCount,
+  staffMemberAllowedBookCount,
+} from "../Shared/borrowBookCount";
 import { GET_USER_BY_ID } from "../API/Queries";
 
 const InfoPage = () => {
@@ -25,6 +30,10 @@ const InfoPage = () => {
   };
 
   const [userInfo, setUserInfo] = useState(initialUserInfo);
+  const [modalShow, setModalShow] = useState(false);
+  const [modalState, setModalState] = useState("");
+  const [usedRefBookCount, setUsedRefBookCount] = useState(0);
+  const [usedLenBookCount, setUsedLenBookCount] = useState(0);
 
   const [getUserInfo] = useLazyQuery(GET_USER_BY_ID, {
     fetchPolicy: "network-only",
@@ -62,6 +71,7 @@ const InfoPage = () => {
             userEmail={userInfo.userEmail}
             totalFine={userInfo.totalFines}
           />
+
           <Row className="mx-0">
             {HomePageButton}
             <Button as={Col} variant="danger" className="ms-5">
@@ -72,6 +82,10 @@ const InfoPage = () => {
               variant="warning"
               className="mx-2"
               disabled={userInfo.userState === userStateEnum.SUSPEND}
+              onClick={() => {
+                setModalShow(true);
+                setModalState(modalStateEnum.BORROW_BOOKS);
+              }}
             >
               Borrow Books
             </Button>
@@ -79,7 +93,31 @@ const InfoPage = () => {
               Return Books
             </Button>
           </Row>
-          <BorrowTable userID={userID} />
+          <BorrowTable
+            userID={userID}
+            userType={userInfo.userType}
+            setUsedRefBooks={setUsedRefBookCount}
+            setUsedLenBooks={setUsedLenBookCount}
+          />
+
+          {modalShow && modalState === modalStateEnum.BORROW_BOOKS && (
+            <BorrowBooksCard
+              show={modalShow}
+              onHide={setModalShow}
+              remainingRefBookCount={
+                userInfo.userType === userTypeEnum.STUDENT
+                  ? studentAllowedBookCount.REF_BOOK_COUNT - usedRefBookCount
+                  : staffMemberAllowedBookCount.REF_BOOK_COUNT -
+                    usedRefBookCount
+              }
+              remainingLenBookCount={
+                userInfo.userType === userTypeEnum.STUDENT
+                  ? studentAllowedBookCount.LEN_BOOK_COUNT - usedLenBookCount
+                  : staffMemberAllowedBookCount.LEN_BOOK_COUNT -
+                    usedLenBookCount
+              }
+            />
+          )}
         </>
       ) : (
         <>

@@ -8,23 +8,87 @@ import {
   returnStatusEnum,
   fineStatusEnum,
   bookTypeEnum,
+  userTypeEnum,
 } from "../Shared/enums";
 import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
 
-const BorrowTable = ({ userID }) => {
+const BorrowTable = ({
+  userID,
+  userType,
+  setUsedRefBooks,
+  setUsedLenBooks,
+}) => {
   BorrowTable.propTypes = {
     userID: PropTypes.string.isRequired,
+    userType: PropTypes.string.isRequired,
+    setUsedRefBooks: PropTypes.func.isRequired,
+    setUsedLenBooks: PropTypes.func.isRequired,
   };
 
   const [borrowedBooks, setBorrowedBooks] = useState([]);
+  let usedRefBooks = 0;
+  let usedLenBooks = 0;
 
   useQuery(GET_BORROWED_BOOKS_BY_ID, {
     fetchPolicy: "network-only",
     variables: {
       userId: userID,
     },
-    onCompleted({ getBorrowedBookByUserID }) {
-      setBorrowedBooks(getBorrowedBookByUserID);
+    async onCompleted({ getBorrowedBookByUserID }) {
+      const tempRecord = [];
+      await getBorrowedBookByUserID.forEach((record) => {
+        record.borrowedBooks.forEach((book) => {
+          if (
+            userType === userTypeEnum.STUDENT &&
+            book.bookType === bookTypeEnum.REFERENCE
+          ) {
+            if (
+              book.returnState === returnStatusEnum.PENDING ||
+              book.returnState === returnStatusEnum.OVERDUE
+            ) {
+              usedRefBooks += 1;
+            }
+          } else if (
+            userType === userTypeEnum.STUDENT &&
+            book.bookType === bookTypeEnum.LENDING
+          ) {
+            if (
+              book.returnState === returnStatusEnum.PENDING ||
+              book.returnState === returnStatusEnum.OVERDUE
+            ) {
+              usedLenBooks += 1;
+            }
+          } else if (
+            userType === userTypeEnum.STAFF_MEMBER &&
+            book.bookType === bookTypeEnum.REFERENCE
+          ) {
+            if (
+              book.returnState === returnStatusEnum.PENDING ||
+              book.returnState === returnStatusEnum.OVERDUE
+            ) {
+              usedRefBooks += 1;
+            }
+          } else if (
+            userType === userTypeEnum.STAFF_MEMBER &&
+            book.bookType === bookTypeEnum.LENDING
+          ) {
+            if (
+              book.returnState === returnStatusEnum.PENDING ||
+              book.returnState === returnStatusEnum.OVERDUE
+            ) {
+              usedLenBooks += 1;
+            }
+          }
+          const borrowedRecord = {
+            borrowDate: record.borrowDate.split("T")[0],
+            book,
+          };
+          tempRecord.push(borrowedRecord);
+        });
+      });
+      setUsedRefBooks(usedRefBooks);
+      setUsedLenBooks(usedLenBooks);
+      setBorrowedBooks(tempRecord);
     },
   });
 
@@ -68,7 +132,6 @@ const BorrowTable = ({ userID }) => {
     <Table striped bordered hover variant="dark" className="my-5">
       <thead>
         <tr>
-          <th>Borrow ID</th>
           <th>Book ID</th>
           <th>Book Type</th>
           <th>Borrowed Date</th>
@@ -80,39 +143,36 @@ const BorrowTable = ({ userID }) => {
         </tr>
       </thead>
       <tbody>
-        {borrowedBooks.map((record) =>
-          record.borrowedBooks.map((book, index) => (
-            <tr key={index}>
-              <td> {record.borrowID} </td>
-              <td> {book.bookID} </td>
-              <td> {textStyler(book.bookType)} </td>
-              <td> {record.borrowDate.split("T")[0]} </td>
-              <td> {book.dueDate.split("T")[0]} </td>
-              <td> {textStyler(book.returnState)} </td>
-              <td>
-                {book.returnedDate !== null
-                  ? book.returnedDate.split("T")[0]
-                  : "-"}
-              </td>
-              <td>
-                {book.fines > 0 ? (
-                  <Badge
-                    bg={
-                      book.fineState === fineStatusEnum.UNPAID
-                        ? "danger"
-                        : "secondary"
-                    }
-                  >
-                    Rs. {book.fines} /=
-                  </Badge>
-                ) : (
-                  "-"
-                )}
-              </td>
-              <td> {textStyler(book.fineState)} </td>
-            </tr>
-          ))
-        )}
+        {borrowedBooks.map((record, index) => (
+          <tr key={index}>
+            <td> {record.book.bookID} </td>
+            <td> {textStyler(record.book.bookType)} </td>
+            <td> {record.borrowDate} </td>
+            <td> {record.book.dueDate.split("T")[0]} </td>
+            <td> {textStyler(record.book.returnState)} </td>
+            <td>
+              {record.book.returnedDate !== null
+                ? record.book.returnedDate.split("T")[0]
+                : "-"}
+            </td>
+            <td>
+              {record.book.fines > 0 ? (
+                <Badge
+                  bg={
+                    record.book.fineState === fineStatusEnum.UNPAID
+                      ? "danger"
+                      : "secondary"
+                  }
+                >
+                  Rs. {record.book.fines} /=
+                </Badge>
+              ) : (
+                "-"
+              )}
+            </td>
+            <td> {textStyler(record.book.fineState)} </td>
+          </tr>
+        ))}
       </tbody>
     </Table>
   );

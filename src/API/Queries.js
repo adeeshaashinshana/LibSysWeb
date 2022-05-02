@@ -20,7 +20,6 @@ export const GET_BORROWED_BOOKS_BY_ID = gql`
   query GetBorrowedBookByUserID($userId: String) {
     getBorrowedBookByUserID(userID: $userId) {
       _id
-      borrowID
       userID
       borrowDate
       borrowedBooks {

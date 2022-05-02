@@ -24,3 +24,9 @@ export const bookTypeEnum = {
   REFERENCE: "REFERENCE",
   LENDING: "LENDING",
 };
+
+export const modalStateEnum = {
+  PAY_FINE: "PAY_FINE",
+  RETURN_BOOKS: "RETURN_BOOKS",
+  BORROW_BOOKS: "BORROW_BOOKS",
+};
