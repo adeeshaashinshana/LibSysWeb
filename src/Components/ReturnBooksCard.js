@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
@@ -8,6 +8,7 @@ import Alert from "react-bootstrap/Alert";
 import { returnStatusEnum } from "../Shared/enums";
 import textStyler from "../Helper/textStyler";
 import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
+import { UPDATE_BORROW_STATUS } from "../API/Mutation";
 
 const ReturnBooksModal = ({ show, onHide, userID }) => {
   ReturnBooksModal.propTypes = {
@@ -17,8 +18,10 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
   };
 
   const [borrowedBooks, setBorrowedBooks] = useState([]);
+  const [clickedBorrowID, setClickedBorrowID] = useState("");
+  const [clickedBookID, setClickedBookID] = useState("");
 
-  useQuery(GET_BORROWED_BOOKS_BY_ID, {
+  const { refetch } = useQuery(GET_BORROWED_BOOKS_BY_ID, {
     fetchPolicy: "network-only",
     variables: {
       userId: userID,
@@ -32,6 +35,7 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
             book.returnState === returnStatusEnum.OVERDUE
           ) {
             tempRecord.push({
+              borrowID: record._id,
               borrowedDate: record.borrowDate.split("T")[0],
               list: book,
             });
@@ -41,6 +45,28 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
       setBorrowedBooks(tempRecord);
     },
   });
+
+  const [updateBorrowState] = useMutation(UPDATE_BORROW_STATUS, {
+    fetchPolicy: "network-only",
+    variables: {
+      borrowId: clickedBorrowID,
+      bookId: clickedBookID,
+      updateStatus: returnStatusEnum.RETURNED,
+    },
+    async onCompleted({ updateBorrowStatus }) {
+      if (updateBorrowStatus) {
+        if (updateBorrowStatus) {
+          refetch();
+        }
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (clickedBorrowID !== "" && clickedBookID !== "") {
+      updateBorrowState();
+    }
+  }, [clickedBorrowID, clickedBookID]);
 
   const handleModalClose = () => {
     onHide(false);
@@ -89,7 +115,14 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
                   <td> {book.list.dueDate.split("T")[0]} </td>
                   <td> {textStyler(book.list.returnState)} </td>
                   <td>
-                    <Button variant="success" size="sm" onClick={() => null}>
+                    <Button
+                      variant="success"
+                      size="sm"
+                      onClick={() => {
+                        setClickedBorrowID(book.borrowID);
+                        setClickedBookID(book.list.bookID);
+                      }}
+                    >
                       Return
                     </Button>
                     <Button
