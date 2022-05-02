@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useQuery } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import Badge from "react-bootstrap/Badge";
+import Alert from "react-bootstrap/Alert";
 import caseConverter from "../Helper/letterCaseConverter";
 import {
   returnStatusEnum,
@@ -17,19 +18,26 @@ const BorrowTable = ({
   userType,
   setUsedRefBooks,
   setUsedLenBooks,
+  refetchData,
+  refetchDataState,
 }) => {
   BorrowTable.propTypes = {
     userID: PropTypes.string.isRequired,
     userType: PropTypes.string.isRequired,
     setUsedRefBooks: PropTypes.func.isRequired,
     setUsedLenBooks: PropTypes.func.isRequired,
+    refetchData: PropTypes.bool.isRequired,
+    refetchDataState: PropTypes.func,
+  };
+  BorrowTable.defaultProps = {
+    refetchDataState: () => null,
   };
 
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   let usedRefBooks = 0;
   let usedLenBooks = 0;
 
-  useQuery(GET_BORROWED_BOOKS_BY_ID, {
+  const { refetch } = useQuery(GET_BORROWED_BOOKS_BY_ID, {
     fetchPolicy: "network-only",
     variables: {
       userId: userID,
@@ -92,6 +100,11 @@ const BorrowTable = ({
     },
   });
 
+  useEffect(() => {
+    refetch();
+    refetchDataState(false);
+  }, [refetchData]);
+
   const textStyler = (status) => {
     let textColor;
 
@@ -129,52 +142,60 @@ const BorrowTable = ({
   };
 
   return (
-    <Table striped bordered hover variant="dark" className="my-5">
-      <thead>
-        <tr>
-          <th>Book ID</th>
-          <th>Book Type</th>
-          <th>Borrowed Date</th>
-          <th>Due Date</th>
-          <th>Return State</th>
-          <th>Returned Date</th>
-          <th>Fines</th>
-          <th>Fines State</th>
-        </tr>
-      </thead>
-      <tbody>
-        {borrowedBooks.map((record, index) => (
-          <tr key={index}>
-            <td> {record.book.bookID} </td>
-            <td> {textStyler(record.book.bookType)} </td>
-            <td> {record.borrowDate} </td>
-            <td> {record.book.dueDate.split("T")[0]} </td>
-            <td> {textStyler(record.book.returnState)} </td>
-            <td>
-              {record.book.returnedDate !== null
-                ? record.book.returnedDate.split("T")[0]
-                : "-"}
-            </td>
-            <td>
-              {record.book.fines > 0 ? (
-                <Badge
-                  bg={
-                    record.book.fineState === fineStatusEnum.UNPAID
-                      ? "danger"
-                      : "secondary"
-                  }
-                >
-                  Rs. {record.book.fines} /=
-                </Badge>
-              ) : (
-                "-"
-              )}
-            </td>
-            <td> {textStyler(record.book.fineState)} </td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+    <>
+      {borrowedBooks.length > 0 ? (
+        <Table striped bordered hover variant="dark" className="my-5">
+          <thead>
+            <tr>
+              <th>Book ID</th>
+              <th>Book Type</th>
+              <th>Borrowed Date</th>
+              <th>Due Date</th>
+              <th>Return State</th>
+              <th>Returned Date</th>
+              <th>Fines</th>
+              <th>Fines State</th>
+            </tr>
+          </thead>
+          <tbody>
+            {borrowedBooks.map((record, index) => (
+              <tr key={index}>
+                <td> {record.book.bookID} </td>
+                <td> {textStyler(record.book.bookType)} </td>
+                <td> {record.borrowDate} </td>
+                <td> {record.book.dueDate.split("T")[0]} </td>
+                <td> {textStyler(record.book.returnState)} </td>
+                <td>
+                  {record.book.returnedDate !== null
+                    ? record.book.returnedDate.split("T")[0]
+                    : "-"}
+                </td>
+                <td>
+                  {record.book.fines > 0 ? (
+                    <Badge
+                      bg={
+                        record.book.fineState === fineStatusEnum.UNPAID
+                          ? "danger"
+                          : "secondary"
+                      }
+                    >
+                      Rs. {record.book.fines} /=
+                    </Badge>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td> {textStyler(record.book.fineState)} </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      ) : (
+        <Alert variant="danger" className="mt-5">
+          No any borrow history with this UserID
+        </Alert>
+      )}
+    </>
   );
 };
 
