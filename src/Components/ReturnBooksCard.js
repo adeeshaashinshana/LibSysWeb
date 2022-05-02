@@ -5,10 +5,14 @@ import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-import { returnStatusEnum } from "../Shared/enums";
+import {
+  returnStatusEnum,
+  fineStatusEnum,
+  buttonTypeEnum,
+} from "../Shared/enums";
 import textStyler from "../Helper/textStyler";
 import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
-import { UPDATE_BORROW_STATUS } from "../API/Mutation";
+import { UPDATE_BORROW_STATUS, UPDATE_FINE_STATUS } from "../API/Mutation";
 
 const ReturnBooksModal = ({ show, onHide, userID }) => {
   ReturnBooksModal.propTypes = {
@@ -20,6 +24,7 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [clickedBorrowID, setClickedBorrowID] = useState("");
   const [clickedBookID, setClickedBookID] = useState("");
+  const [clickedButtonType, setClickedButtonType] = useState("");
 
   const { refetch } = useQuery(GET_BORROWED_BOOKS_BY_ID, {
     fetchPolicy: "network-only",
@@ -55,18 +60,47 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
     },
     async onCompleted({ updateBorrowStatus }) {
       if (updateBorrowStatus) {
-        if (updateBorrowStatus) {
-          refetch();
-        }
+        refetch();
+        setClickedBorrowID("");
+        setClickedBookID("");
+        setClickedButtonType("");
+      }
+    },
+  });
+
+  const [updateFineState] = useMutation(UPDATE_FINE_STATUS, {
+    fetchPolicy: "network-only",
+    variables: {
+      borrowId: clickedBorrowID,
+      bookId: clickedBookID,
+      updateStatus: fineStatusEnum.PAID,
+    },
+    async onCompleted({ updateFineStatus }) {
+      if (updateFineStatus) {
+        refetch();
+        setClickedBorrowID("");
+        setClickedBookID("");
+        setClickedButtonType("");
       }
     },
   });
 
   useEffect(() => {
-    if (clickedBorrowID !== "" && clickedBookID !== "") {
+    if (
+      clickedBorrowID !== "" &&
+      clickedBookID !== "" &&
+      clickedButtonType === buttonTypeEnum.UPDATE
+    ) {
       updateBorrowState();
     }
-  }, [clickedBorrowID, clickedBookID]);
+    if (
+      clickedBorrowID !== "" &&
+      clickedBookID !== "" &&
+      clickedButtonType === buttonTypeEnum.PAY_FINE
+    ) {
+      updateFineState();
+    }
+  }, [clickedBorrowID, clickedBookID, clickedButtonType]);
 
   const handleModalClose = () => {
     onHide(false);
@@ -121,6 +155,7 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
                       onClick={() => {
                         setClickedBorrowID(book.borrowID);
                         setClickedBookID(book.list.bookID);
+                        setClickedButtonType(buttonTypeEnum.UPDATE);
                       }}
                     >
                       Return
@@ -129,8 +164,12 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
                       variant={book.list.fines === 0 ? "secondary" : "danger"}
                       size="sm"
                       className="ms-2"
-                      disabled={book.list.fines === 0}
-                      onClick={() => null}
+                      disabled={book.list.fineState !== fineStatusEnum.UNPAID}
+                      onClick={() => {
+                        setClickedBorrowID(book.borrowID);
+                        setClickedBookID(book.list.bookID);
+                        setClickedButtonType(buttonTypeEnum.PAY_FINE);
+                      }}
                     >
                       Pay Fine
                     </Button>

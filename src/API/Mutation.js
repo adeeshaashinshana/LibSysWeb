@@ -49,3 +49,32 @@ export const UPDATE_BORROW_STATUS = gql`
     }
   }
 `;
+
+// ------------- <<< Mutation for update return status >>> -------------
+export const UPDATE_FINE_STATUS = gql`
+  mutation UpdateFineStatus(
+    $borrowId: ID
+    $bookId: String
+    $updateStatus: String
+  ) {
+    updateFineStatus(
+      borrowID: $borrowId
+      bookID: $bookId
+      updateStatus: $updateStatus
+    ) {
+      _id
+      userID
+      borrowDate
+      borrowedBooks {
+        recordID
+        bookID
+        bookType
+        dueDate
+        returnState
+        returnedDate
+        fines
+        fineState
+      }
+    }
+  }
+`;
