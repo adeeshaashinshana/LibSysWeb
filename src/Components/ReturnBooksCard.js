@@ -14,11 +14,15 @@ import textStyler from "../Helper/textStyler";
 import { GET_BORROWED_BOOKS_BY_ID } from "../API/Queries";
 import { UPDATE_BORROW_STATUS, UPDATE_FINE_STATUS } from "../API/Mutation";
 
-const ReturnBooksModal = ({ show, onHide, userID }) => {
+const ReturnBooksModal = ({ show, onHide, userID, refetchDataState }) => {
   ReturnBooksModal.propTypes = {
     show: PropTypes.bool.isRequired,
     onHide: PropTypes.func.isRequired,
     userID: PropTypes.string.isRequired,
+    refetchDataState: PropTypes.func,
+  };
+  ReturnBooksModal.defaultProps = {
+    refetchDataState: () => null,
   };
 
   const [borrowedBooks, setBorrowedBooks] = useState([]);
@@ -37,7 +41,8 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
         record.borrowedBooks.forEach((book) => {
           if (
             book.returnState === returnStatusEnum.PENDING ||
-            book.returnState === returnStatusEnum.OVERDUE
+            book.returnState === returnStatusEnum.OVERDUE ||
+            book.fineState === fineStatusEnum.UNPAID
           ) {
             tempRecord.push({
               borrowID: record._id,
@@ -61,6 +66,7 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
     async onCompleted({ updateBorrowStatus }) {
       if (updateBorrowStatus) {
         refetch();
+        refetchDataState(true);
         setClickedBorrowID("");
         setClickedBookID("");
         setClickedButtonType("");
@@ -72,6 +78,7 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
     fetchPolicy: "network-only",
     variables: {
       borrowId: clickedBorrowID,
+      userID: userID,
       bookId: clickedBookID,
       updateStatus: fineStatusEnum.PAID,
     },
@@ -152,6 +159,9 @@ const ReturnBooksModal = ({ show, onHide, userID }) => {
                     <Button
                       variant="success"
                       size="sm"
+                      disabled={
+                        book.list.returnState === returnStatusEnum.RETURNED
+                      }
                       onClick={() => {
                         setClickedBorrowID(book.borrowID);
                         setClickedBookID(book.list.bookID);

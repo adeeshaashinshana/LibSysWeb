@@ -54,11 +54,13 @@ export const UPDATE_BORROW_STATUS = gql`
 export const UPDATE_FINE_STATUS = gql`
   mutation UpdateFineStatus(
     $borrowId: ID
+    $userID: String
     $bookId: String
     $updateStatus: String
   ) {
     updateFineStatus(
       borrowID: $borrowId
+      userID: $userID
       bookID: $bookId
       updateStatus: $updateStatus
     ) {

@@ -27,7 +27,6 @@ const InfoPage = () => {
     userType: "",
     userState: "",
     userEmail: "",
-    totalFines: 0,
   };
 
   const [userInfo, setUserInfo] = useState(initialUserInfo);
@@ -71,7 +70,6 @@ const InfoPage = () => {
             userName={userInfo.userName}
             userType={userInfo.userType}
             userEmail={userInfo.userEmail}
-            totalFine={userInfo.totalFines}
           />
 
           <Row className="mx-0">
@@ -98,7 +96,7 @@ const InfoPage = () => {
                 setModalState(modalStateEnum.RETURN_BOOKS);
               }}
             >
-              Return Books
+              Return Books & Pay Fines
             </Button>
           </Row>
           <BorrowTable
@@ -137,6 +135,7 @@ const InfoPage = () => {
               show={modalShow}
               onHide={setModalShow}
               userID={userID}
+              refetchDataState={setRefetchState}
             />
           )}
         </>
