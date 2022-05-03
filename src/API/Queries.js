@@ -10,7 +10,6 @@ export const GET_USER_BY_ID = gql`
       userEmail
       userType
       userState
-      totalFines
     }
   }
 `;

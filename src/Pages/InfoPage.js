@@ -8,6 +8,7 @@ import Alert from "react-bootstrap/Alert";
 import UserInfoCard from "../Components/UserInfoCard";
 import BorrowTable from "../Components/BorrowedTable";
 import BorrowBooksCard from "../Components/BorrowBooksCard";
+import ReturnBooksModal from "../Components/ReturnBooksCard";
 import { userStateEnum, modalStateEnum, userTypeEnum } from "../Shared/enums";
 import {
   studentAllowedBookCount,
@@ -26,7 +27,6 @@ const InfoPage = () => {
     userType: "",
     userState: "",
     userEmail: "",
-    totalFines: 0,
   };
 
   const [userInfo, setUserInfo] = useState(initialUserInfo);
@@ -70,28 +70,33 @@ const InfoPage = () => {
             userName={userInfo.userName}
             userType={userInfo.userType}
             userEmail={userInfo.userEmail}
-            totalFine={userInfo.totalFines}
           />
 
           <Row className="mx-0">
             {HomePageButton}
-            <Button as={Col} variant="danger" className="ms-5">
-              Pay Fine
-            </Button>
             <Button
               as={Col}
               variant="warning"
-              className="mx-2"
+              className="mx-4"
               disabled={userInfo.userState === userStateEnum.SUSPEND}
               onClick={() => {
-                setModalShow(true);
-                setModalState(modalStateEnum.BORROW_BOOKS);
+                if (userInfo.userState === userStateEnum.ACTIVE) {
+                  setModalShow(true);
+                  setModalState(modalStateEnum.BORROW_BOOKS);
+                }
               }}
             >
               Borrow Books
             </Button>
-            <Button as={Col} variant="success">
-              Return Books
+            <Button
+              as={Col}
+              variant="success"
+              onClick={() => {
+                setModalShow(true);
+                setModalState(modalStateEnum.RETURN_BOOKS);
+              }}
+            >
+              Return Books & Pay Fines
             </Button>
           </Row>
           <BorrowTable
@@ -122,6 +127,15 @@ const InfoPage = () => {
                     usedLenBookCount
               }
               refetchData={setRefetchState}
+            />
+          )}
+
+          {modalShow && modalState === modalStateEnum.RETURN_BOOKS && (
+            <ReturnBooksModal
+              show={modalShow}
+              onHide={setModalShow}
+              userID={userID}
+              refetchDataState={setRefetchState}
             />
           )}
         </>

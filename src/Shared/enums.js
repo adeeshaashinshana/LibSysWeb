@@ -30,3 +30,8 @@ export const modalStateEnum = {
   RETURN_BOOKS: "RETURN_BOOKS",
   BORROW_BOOKS: "BORROW_BOOKS",
 };
+
+export const buttonTypeEnum = {
+  UPDATE: "UPDATE",
+  PAY_FINE: "PAY_FINE",
+};
