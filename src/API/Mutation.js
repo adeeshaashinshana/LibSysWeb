@@ -80,3 +80,17 @@ export const UPDATE_FINE_STATUS = gql`
     }
   }
 `;
+
+// ------------- <<< Mutation for create user >>> -------------
+export const CREATE_USER = gql`
+  mutation CreateUser($newUser: UserCreateInput) {
+    createUser(newUser: $newUser) {
+      id
+      userID
+      userName
+      userEmail
+      userType
+      userState
+    }
+  }
+`;
