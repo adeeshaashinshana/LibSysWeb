@@ -7,6 +7,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
+import { FaSpinner } from "react-icons/fa";
 import { GET_USER_BY_ID } from "../API/Queries";
 import { CREATE_USER } from "../API/Mutation";
 import { userTypeEnum } from "../Shared/enums";
@@ -29,7 +30,7 @@ const LoginPage = () => {
     setErrorAlert("");
   };
 
-  const [getUser] = useLazyQuery(GET_USER_BY_ID, {
+  const [getUser, { loading: getUserLoading }] = useLazyQuery(GET_USER_BY_ID, {
     fetchPolicy: "network-only",
     variables: {
       userId: userIdValue,
@@ -49,30 +50,33 @@ const LoginPage = () => {
     },
   });
 
-  const [createNewUser] = useMutation(CREATE_USER, {
-    fetchPolicy: "network-only",
-    variables: {
-      newUser: {
-        userID: userIdValue,
-        userName: userNameValue,
-        userEmail: userEmailValue,
-        userType: userTypeValue,
+  const [createNewUser, { loading: createUserLoading }] = useMutation(
+    CREATE_USER,
+    {
+      fetchPolicy: "network-only",
+      variables: {
+        newUser: {
+          userID: userIdValue,
+          userName: userNameValue,
+          userEmail: userEmailValue,
+          userType: userTypeValue,
+        },
       },
-    },
-    async onCompleted({ createUser }) {
-      initialValues();
-      if (createUser) {
-        navigate({
-          pathname: "borrowInfo",
-          search: `?${createSearchParams({
-            userID: createUser.userID,
-          })}`,
-        });
-      } else {
-        setErrorAlert("Unable to create user now! Try again later!");
-      }
-    },
-  });
+      async onCompleted({ createUser }) {
+        initialValues();
+        if (createUser) {
+          navigate({
+            pathname: "borrowInfo",
+            search: `?${createSearchParams({
+              userID: createUser.userID,
+            })}`,
+          });
+        } else {
+          setErrorAlert("Unable to create user now! Try again later!");
+        }
+      },
+    }
+  );
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -132,10 +136,10 @@ const LoginPage = () => {
                   className="mb-3"
                   controlId="formBasicUserID"
                 >
-                  <Form.Label column sm="3">
+                  <Form.Label column sm={isSignIn ? "3" : "12"}>
                     User ID
                   </Form.Label>
-                  <Col className="me-3">
+                  <Col className={isSignIn ? "me-3" : "mx-3"}>
                     <Form.Control
                       type="text"
                       name="userID"
@@ -206,7 +210,7 @@ const LoginPage = () => {
                 )}
 
                 {errorAlert !== "" && (
-                  <Alert variant="danger" className="mt-5 mx-3">
+                  <Alert variant="danger" className="mx-3">
                     {errorAlert}
                   </Alert>
                 )}
@@ -219,14 +223,37 @@ const LoginPage = () => {
                     >
                       Back to Login
                     </Button>
-                    <Button variant="dark" type="submit" className="ms-2">
-                      Sign In
+                    <Button
+                      variant="dark"
+                      type="submit"
+                      className="ms-2"
+                      disabled={createUserLoading}
+                    >
+                      {createUserLoading ? (
+                        <div className="d-flex align-items-center">
+                          <FaSpinner className="loader me-2" />
+                          <div> Signing In...</div>
+                        </div>
+                      ) : (
+                        "Sign In"
+                      )}
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="dark" type="submit">
-                      Login
+                    <Button
+                      variant="dark"
+                      type="submit"
+                      disabled={getUserLoading}
+                    >
+                      {getUserLoading ? (
+                        <div className="d-flex align-items-center">
+                          <FaSpinner className="loader me-2" />
+                          <div> Login...</div>
+                        </div>
+                      ) : (
+                        "Login"
+                      )}
                     </Button>
                     <Button
                       variant="dark"
